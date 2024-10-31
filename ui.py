@@ -4,7 +4,7 @@ from player import Player
 
 
 class UI:
-    def __init__(self, board, screen_width=700, screen_height=600, cell_size=100):
+    def __init__(self, board: Board, screen_width=700, screen_height=600, cell_size=100):
         pygame.init()
         self.board = board
         self.screen_width = screen_width
@@ -16,7 +16,7 @@ class UI:
         # Define colors
         self.bg_color = (30, 30, 30)  # Dark background
         self.grid_color = (50, 50, 255)  # Blue grid
-        self.player_colors = {'x': (255, 0, 0), 'o': (255, 255, 0)}  # Red and yellow
+        self.player_colors = {'x': self.board.player1.color, 'o': self.board.player2.color}  # Red and yellow
         self.font = pygame.font.Font(None, 36)
 
     def draw_board(self):
@@ -53,10 +53,10 @@ class UI:
         pygame.display.flip()
 
     def show_message(self, message):
-        # Render message text
-        text_surface = self.font.render(message, True, (255, 255, 255))
-        # Position message at the top
-        self.screen.blit(text_surface, (10, 10))
+        font = pygame.font.Font(None, 25)
+        text = self.font.render(message, True, (255, 255, 255))
+        text_rect = text.get_rect(center=(self.screen_width/2, self.screen_height/2))
+        self.screen.blit(text, text_rect)
         pygame.display.flip()
 
     def highlight_column(self, column, player):

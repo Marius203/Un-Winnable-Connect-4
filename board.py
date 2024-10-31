@@ -1,4 +1,6 @@
 from player import Player
+import random
+import pygame
 
 class Board:
     def __init__(self, p1: Player, p2:Player) -> None:
@@ -21,8 +23,22 @@ class Board:
         for i in range (6):
             print(self.grid[i])
 
-    def add_piece(self, player: Player):
-        column = player.make_move()
+    def add_piece_human(self):
+        waiting = True
+        while waiting:
+            event = pygame.event.wait()
+            if event.type != pygame.MOUSEBUTTONDOWN and event.type != pygame.QUIT:
+                continue
+            elif event.type == pygame.QUIT:
+                running = False  # Exit the main game loop
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                x, y = pygame.mouse.get_pos()
+                print(f'Mouse clicked at {x}, {y}')
+                waiting = False
+            else: print(event)
+
+        column = x//100
+        print(column)
         for i in range (5,-1,-1):
             if self.grid[i][column] == 0:
                 self.grid[i][column] = self.current_player.name
@@ -30,6 +46,14 @@ class Board:
                 return True
         print("invalid move")
         
+
+    def add_piece_computer(self):
+        column = random.randint(0,6)
+        for i in range (5,-1,-1):
+            if self.grid[i][column] == 0:
+                self.grid[i][column] = self.current_player.name
+                self.last_col, self.last_row = column, i
+                return True
                 
     def check_win(self, row, col, player: Player):
         # Define directions as (row_delta, col_delta) pairs
