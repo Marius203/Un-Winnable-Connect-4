@@ -1,102 +1,57 @@
-from player import Player
-import random
-import pygame
+from main import *
 
 class Board:
-    def __init__(self, p1: Player, p2:Player) -> None:
-        self.rows = 6
-        self.columns = 7
-        self.last_row = 0
-        self.last_col = 0
-        self.grid = [[0 for _ in range(7)] for _ in range(6)]
-        self.player1 = p1
-        self.player2 = p2
-        self.current_player = p2
-
-    def player_swap(self):
-        if self.current_player == self.player1:
-            self.current_player = self.player2
-        else:
-            self.current_player = self.player1
-
-    def show_grid(self):
-        for i in range (6):
-            print(self.grid[i])
-
-    def add_piece_human(self):
-        waiting = True
-        while waiting:
-            event = pygame.event.wait()
-            if event.type != pygame.MOUSEBUTTONDOWN and event.type != pygame.QUIT:
-                continue
-            elif event.type == pygame.QUIT:
-                running = False  # Exit the main game loop
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                x, y = pygame.mouse.get_pos()
-                print(f'Mouse clicked at {x}, {y}')
-                waiting = False
-            else: print(event)
-
-        column = x//100
-        print(column)
-        for i in range (5,-1,-1):
-            if self.grid[i][column] == 0:
-                self.grid[i][column] = self.current_player.name
-                self.last_col, self.last_row = column, i
-                return True
-        print("invalid move")
-        
-
-    def add_piece_computer(self):
-        column = random.randint(0,6)
-        for i in range (5,-1,-1):
-            if self.grid[i][column] == 0:
-                self.grid[i][column] = self.current_player.name
-                self.last_col, self.last_row = column, i
-                return True
-                
-    def check_win(self, row, col, player: Player):
-        # Define directions as (row_delta, col_delta) pairs
-        directions = [
-            (0, 1),   # Horizontal right
-            (1, 0),   # Vertical down
-            (1, 1),   # Diagonal down-right
-            (1, -1)   # Diagonal down-left
-        ]
-        
-        for dr, dc in directions:
-            count = 1  # Current piece
-            
-            # Check in the positive direction
-            r, c = row + dr, col + dc
-            while 0 <= r < len(self.grid) and 0 <= c < len(self.grid[0]):
-                if self.grid[r][c] == player.name:
-                    count += 1
-                    r += dr
-                    c += dc
-                else: break
-            
-            # Check in the negative direction
-            r, c = row - dr, col - dc
-            while 0 <= r < len(self.grid) and 0 <= c < len(self.grid[0]):
-                if self.grid[r][c] == player.name:
-                    count += 1
-                    r -= dr
-                    c -= dc
-                else :break
-            
-            # Check if there are 4 in a row
-            if count >= 4:
-                return True
-        
-        self.player_swap()
+    def __init__(self):
+        self.board = np.zeros((ROW_COUNT, COLUMN_COUNT))
+    
+    def drop_piece(self, row, col, piece):
+        self.board[row][col] = piece
+    
+    def is_valid_location(self, col):
+        return self.board[ROW_COUNT - 1][col] == 0
+    
+    def get_next_open_row(self, col):
+        for r in range(ROW_COUNT):
+            if self.board[r][col] == 0:
+                return r
+    
+    def winning_move(self, piece):
+        # Check horizontal locations
+        for c in range(COLUMN_COUNT - 3):
+            for r in range(ROW_COUNT):
+                if all([self.board[r][c+i] == piece for i in range(WINDOW_LENGTH)]):
+                    return True
+        # Check vertical locations
+        for c in range(COLUMN_COUNT):
+            for r in range(ROW_COUNT - 3):
+                if all([self.board[r+i][c] == piece for i in range(WINDOW_LENGTH)]):
+                    return True
+        # Check positively sloped diagonals
+        for c in range(COLUMN_COUNT - 3):
+            for r in range(ROW_COUNT - 3):
+                if all([self.board[r+i][c+i] == piece for i in range(WINDOW_LENGTH)]):
+                    return True
+        # Check negatively sloped diagonals
+        for c in range(COLUMN_COUNT - 3):
+            for r in range(3, ROW_COUNT):
+                if all([self.board[r-i][c+i] == piece for i in range(WINDOW_LENGTH)]):
+                    return True
         return False
 
+    def get_valid_locations(self):
+        valid_locations = []
+        for col in range(COLUMN_COUNT):
+            if self.is_valid_location(col):
+                valid_locations.append(col)
+        return valid_locations
 
-# [[0 0 0 0 0 0 0]
-#  [0 0 0 0 0 0 0]
-#  [0 0 0 0 0 0 0]
-#  [0 0 0 0 0 0 0]
-#  [0 0 0 0 0 0 0]
-#  [0 0 0 0 0 0 0]
-#  [0 0 0 0 0 0 0]]
+    def is_terminal_node(self):
+        return self.winning_move(PLAYER_PIECE) or self.winning_move(AI_PIECE) or len(self.get_valid_locations()) == 0
+
+    def print_board(self):
+        print(np.flip(self.board, 0))
+
+    def copy(self):
+        new_board = Board()
+        new_board.board = np.copy(self.board)
+        return new_board
