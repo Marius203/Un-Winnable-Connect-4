@@ -5,6 +5,7 @@ from board import Board
 class Game:
     def __init__(self):
         pygame.init()
+        pygame.display.set_caption('Unwinnable Connect Four')
         self.screen = pygame.display.set_mode(size)
         self.myfont = pygame.font.SysFont("monospace", 75)
         self.board = Board()
